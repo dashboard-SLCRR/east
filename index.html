@@ -107,7 +107,7 @@
                     <!-- Updated Title to "Activities Cards" -->
                     <span id="projects-title">Activities Cards</span>
                 </h2>
-                <div class="flex gap-2 flex-wrap">
+                <div class="flex gap-2 flex-wrap items-center">
                     <button onclick="setFilter('all')" id="btn-all" class="px-4 py-1.5 rounded-lg text-sm font-medium transition-colors bg-[#006EB5] text-white shadow-lg shadow-[#006EB5]/20">
                         All Projects
                     </button>
@@ -120,6 +120,11 @@
                     <button onclick="setFilter('delayed')" id="btn-delayed" class="px-4 py-1.5 rounded-lg text-sm font-medium transition-colors bg-[#002347] text-slate-400 border border-[#003366] hover:bg-[#003366]">
                         Delayed / Attention
                     </button>
+                    
+                    <!-- Dynamic Donor Filter Dropdown -->
+                    <select id="donor-filter" onchange="setDonorFilter(this.value)" class="px-4 py-1.5 rounded-lg text-sm font-medium transition-colors bg-[#002347] text-slate-400 border border-[#003366] hover:bg-[#003366] focus:outline-none focus:border-[#006EB5] cursor-pointer outline-none">
+                        <option value="all">All Donors</option>
+                    </select>
                 </div>
             </div>
 
@@ -151,7 +156,8 @@
             {
                 id: 1, 
                 region: "East", 
-                donor: "France", 
+                donor: "France",
+                donors: ["France"], 
                 activity: "Weather Station Equipment",
                 percentage: 100, 
                 progressDesc: "Transport of equipment to target locations under preparation", 
@@ -165,7 +171,8 @@
             {
                 id: 2, 
                 region: "East", 
-                donor: "EU", 
+                donor: "EU",
+                donors: ["EU"], 
                 activity: "Silphium Square Rehabilitation Project",
                 percentage: 100, 
                 progressDesc: "Completed", 
@@ -178,7 +185,8 @@
             {
                 id: 3, 
                 region: "East", 
-                donor: "EU", 
+                donor: "EU",
+                donors: ["EU"], 
                 activity: "Engineering Consultancy: Al-Rabih Market Reconstruction",
                 percentage: 100, 
                 progressDesc: "under final handover Process", 
@@ -190,7 +198,8 @@
             {
                 id: 4, 
                 region: "East", 
-                donor: "Libya", 
+                donor: "Libya",
+                donors: ["Libya"], 
                 activity: "Benghazi Municipal Building Rehabilitation",
                 percentage: 75, 
                 progressDesc: "Attention Required", 
@@ -201,7 +210,8 @@
             {
                 id: 5, 
                 region: "East", 
-                donor: "Libya", 
+                donor: "Libya",
+                donors: ["Libya"], 
                 activity: "Rehabilitation of Historical Building Al Manar Palace",
                 percentage: 100, 
                 progressDesc: "Pending Retention", 
@@ -214,7 +224,8 @@
             {
                 id: 6, 
                 region: "East", 
-                donor: "France", 
+                donor: "France",
+                donors: ["France"], 
                 activity: "Rehabilitation of five water pump stations (Bayda)",
                 percentage: 100, 
                 progressDesc: "Under final handover process", 
@@ -226,7 +237,8 @@
             {
                 id: 7, 
                 region: "East", 
-                donor: "AfDB", 
+                donor: "AfDB",
+                donors: ["AfDB"], 
                 activity: "TOT Training: Municipal Business Incubators (DERAYA)",
                 percentage: 100, 
                 progressDesc: "Finalized", 
@@ -239,7 +251,8 @@
             {
                 id: 8, 
                 region: "East", 
-                donor: "AfDB", 
+                donor: "AfDB",
+                donors: ["AfDB"], 
                 activity: "Small Grants to Startups in Benghazi and Derna",
                 percentage: 99, 
                 progressDesc: "Ongoing", 
@@ -250,7 +263,8 @@
             {
                 id: 9, 
                 region: "East", 
-                donor: "PBF", 
+                donor: "PBF",
+                donors: ["PBF"], 
                 activity: "Context and Climate Security Analysis",
                 percentage: 0, 
                 progressDesc: "Developing TORs", 
@@ -262,7 +276,8 @@
             {
                 id: 10, 
                 region: "East", 
-                donor: "PBF & IsDB", 
+                donor: "PBF & IsDB",
+                donors: ["PBF", "IsDB"], 
                 activity: "Livelihoods Assessment",
                 percentage: 0, 
                 progressDesc: "Developing TORs", 
@@ -485,6 +500,27 @@
 
         // --- Main Logic ---
         let currentFilter = 'all';
+        let currentDonorFilter = 'all';
+
+        function populateDonorDropdown() {
+            const donorSet = new Set();
+            projects.forEach(p => {
+                const activityDonors = p.donors || [p.donor];
+                activityDonors.forEach(d => {
+                    if (d && d.trim() !== '') donorSet.add(d.trim());
+                });
+            });
+            
+            const donorSelect = document.getElementById('donor-filter');
+            const uniqueDonors = Array.from(donorSet).sort();
+            
+            uniqueDonors.forEach(donor => {
+                const option = document.createElement('option');
+                option.value = donor;
+                option.textContent = donor;
+                donorSelect.appendChild(option);
+            });
+        }
 
         function renderStats() {
             const total = projects.length;
@@ -530,18 +566,21 @@
             // Donor Data
             const donors = {};
             projects.forEach(p => {
-                const name = p.donor.trim(); 
-                donors[name] = (donors[name] || 0) + 1;
+                const activityDonors = p.donors || [p.donor];
+                activityDonors.forEach(d => {
+                    const name = d.trim();
+                    donors[name] = (donors[name] || 0) + 1;
+                });
             });
 
-            const colors = ['#006EB5', '#41B6E6', '#008CBA', '#6699CC', '#89CFF0', '#004d80'];
+            const colors = ['#006EB5', '#41B6E6', '#008CBA', '#6699CC', '#89CFF0', '#004d80', '#003366'];
             const donorData = Object.keys(donors).map((name, index) => ({
                 name: name,
                 value: donors[name],
                 color: colors[index % colors.length]
             })).sort((a, b) => b.value - a.value);
 
-            // Render Donor Chart - Updated to show unique donor count (4)
+            // Render Donor Chart
             document.getElementById('donor-chart-container').innerHTML = createDonutChart(donorData, 180, 16, donorData.length, "Donors");
 
             // Render Donor Legend
@@ -564,12 +603,26 @@
             const title = document.getElementById('projects-title');
             const summaryContainer = document.getElementById('filter-summary-container');
             
-            let filtered = projects;
-            if (currentFilter === 'delayed') {
-                filtered = projects.filter(p => {
-                    const commentsLower = p.comments?.toLowerCase() || "";
-                    const progressLower = p.progressDesc?.toLowerCase() || "";
-                    return commentsLower.includes('delay') || 
+            // 1. First layer: Filter by Donor
+            const donorFilteredProjects = projects.filter(p => {
+                const activityDonors = p.donors || [p.donor];
+                return currentDonorFilter === 'all' || activityDonors.includes(currentDonorFilter);
+            });
+
+            // 2. Second layer: Filter by Status
+            let filtered = donorFilteredProjects.filter(activity => {
+                let matchesStatus = false;
+
+                if (currentFilter === 'all') {
+                    matchesStatus = true;
+                } else if (currentFilter === 'inprogress') {
+                    matchesStatus = (activity.percentage !== null && activity.percentage < 100) || activity.percentage === null;
+                } else if (currentFilter === 'completed') {
+                    matchesStatus = activity.percentage === 100 || activity.status === 'Finalized';
+                } else if (currentFilter === 'delayed') {
+                    const commentsLower = activity.comments?.toLowerCase() || "";
+                    const progressLower = activity.progressDesc?.toLowerCase() || "";
+                    matchesStatus = commentsLower.includes('delay') || 
                            commentsLower.includes('challenge') || 
                            commentsLower.includes('awaiting') ||
                            commentsLower.includes('stalled') ||
@@ -578,23 +631,29 @@
                            commentsLower.includes("follow up") ||
                            commentsLower.includes("attention") ||
                            progressLower.includes("attention");
-                });
-                title.innerText = 'Activities Cards (Attention Required)';
+                }
+
+                return matchesStatus;
+            });
+
+            // Set Title dynamically
+            let titlePrefix = currentDonorFilter === 'all' ? 'Activities Cards' : `Activities Cards (${currentDonorFilter})`;
+            if (currentFilter === 'delayed') {
+                title.innerText = `${titlePrefix} - Attention Required`;
             } else if (currentFilter === 'inprogress') {
-                filtered = projects.filter(p => (p.percentage !== null && p.percentage < 100) || p.percentage === null);
-                title.innerText = 'Activities Cards (In Progress)';
+                title.innerText = `${titlePrefix} - In Progress`;
             } else if (currentFilter === 'completed') {
-                filtered = projects.filter(p => p.percentage === 100 || p.status === 'Finalized');
-                title.innerText = 'Activities Cards (Completed 100%)';
+                title.innerText = `${titlePrefix} - Completed 100%`;
             } else {
-                title.innerText = 'Activities Cards';
+                title.innerText = titlePrefix;
             }
 
             // Summary UI rendering logic for completed 100% filter
             if (currentFilter === 'completed') {
-                const completedCount = projects.filter(p => p.percentage === 100 || p.status === 'Finalized').length;
-                const totalCount = projects.length;
-                const percentage = Math.round((completedCount / totalCount) * 100) || 0;
+                // Calculate from the already donor-filtered list so it dynamically updates
+                const completedCount = donorFilteredProjects.filter(p => p.percentage === 100 || p.status === 'Finalized').length;
+                const totalCount = donorFilteredProjects.length;
+                const percentage = totalCount > 0 ? Math.round((completedCount / totalCount) * 100) : 0;
                 
                 summaryContainer.innerHTML = `
                     <div class="bg-[#002347]/40 border border-[#006EB5]/20 p-4 rounded-xl flex flex-col gap-2 max-w-md">
@@ -616,7 +675,7 @@
             if (filtered.length === 0) {
                 grid.innerHTML = `
                     <div class="col-span-full py-12 text-center text-slate-500 bg-[#002347]/30 rounded-2xl border border-dashed border-[#003366]">
-                        <p>No projects match this filter.</p>
+                        <p>No projects match this filter combination.</p>
                     </div>`;
             } else {
                 grid.innerHTML = filtered.map(p => createProjectCard(p)).join('');
@@ -653,6 +712,11 @@
             renderProjects();
         }
 
+        function setDonorFilter(donor) {
+            currentDonorFilter = donor;
+            renderProjects();
+        }
+
         function updateDate() {
             const dateElement = document.getElementById('last-updated-date');
             if (dateElement) {
@@ -666,6 +730,7 @@
         // --- Init ---
         window.onload = () => {
             updateDate();
+            populateDonorDropdown();
             renderStats();
             renderCharts();
             renderProjects();
