@@ -107,15 +107,24 @@
                     <!-- Updated Title to "Activities Cards" -->
                     <span id="projects-title">Activities Cards</span>
                 </h2>
-                <div class="flex gap-2">
+                <div class="flex gap-2 flex-wrap">
                     <button onclick="setFilter('all')" id="btn-all" class="px-4 py-1.5 rounded-lg text-sm font-medium transition-colors bg-[#006EB5] text-white shadow-lg shadow-[#006EB5]/20">
                         All Projects
+                    </button>
+                    <button onclick="setFilter('inprogress')" id="btn-inprogress" class="px-4 py-1.5 rounded-lg text-sm font-medium transition-colors bg-[#002347] text-slate-400 border border-[#003366] hover:bg-[#003366]">
+                        In Progress
+                    </button>
+                    <button onclick="setFilter('completed')" id="btn-completed" class="px-4 py-1.5 rounded-lg text-sm font-medium transition-colors bg-[#002347] text-slate-400 border border-[#003366] hover:bg-[#003366]">
+                        Completed 100%
                     </button>
                     <button onclick="setFilter('delayed')" id="btn-delayed" class="px-4 py-1.5 rounded-lg text-sm font-medium transition-colors bg-[#002347] text-slate-400 border border-[#003366] hover:bg-[#003366]">
                         Delayed / Attention
                     </button>
                 </div>
             </div>
+
+            <!-- New Summary Container -->
+            <div id="filter-summary-container" class="hidden"></div>
 
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" id="projects-grid">
                 <!-- Project Cards injected by JS -->
@@ -183,9 +192,9 @@
                 region: "East", 
                 donor: "Libya", 
                 activity: "Benghazi Municipal Building Rehabilitation",
-                percentage: 70, 
-                progressDesc: "Ongoing", 
-                comments: "Completion date 30th June 2026.",
+                percentage: 75, 
+                progressDesc: "Attention Required", 
+                comments: "<span class='text-rose-500 font-medium'>The completion date is currently set for 30 June 2026. However, an extension may be required and will be confirmed after 28 May 2026.</span>",
                 icon: "building-2",
                 value: "2,150,000"
             },
@@ -232,7 +241,7 @@
                 region: "East", 
                 donor: "AfDB", 
                 activity: "Small Grants to Startups in Benghazi and Derna",
-                percentage: 55, 
+                percentage: 99, 
                 progressDesc: "Ongoing", 
                 comments: "Completion date 30 May 2026.",
                 icon: "coins",
@@ -296,7 +305,7 @@
             const commentsLower = project.comments?.toLowerCase() || "";
             const progressLower = project.progressDesc?.toLowerCase() || "";
             
-            const isDelayed = commentsLower.includes('delay') || commentsLower.includes('stalled') || commentsLower.includes('awaiting') || progressLower.includes('stalled');
+            const isDelayed = commentsLower.includes('delay') || commentsLower.includes('stalled') || commentsLower.includes('awaiting') || progressLower.includes('stalled') || commentsLower.includes('attention') || progressLower.includes('attention');
             const isActionRequired = commentsLower.includes("action required") || commentsLower.includes("follow up");
             
             // Status Badge
@@ -553,6 +562,7 @@
         function renderProjects() {
             const grid = document.getElementById('projects-grid');
             const title = document.getElementById('projects-title');
+            const summaryContainer = document.getElementById('filter-summary-container');
             
             let filtered = projects;
             if (currentFilter === 'delayed') {
@@ -565,11 +575,42 @@
                            commentsLower.includes('stalled') ||
                            progressLower.includes('stalled') ||
                            commentsLower.includes("action required") ||
-                           commentsLower.includes("follow up");
+                           commentsLower.includes("follow up") ||
+                           commentsLower.includes("attention") ||
+                           progressLower.includes("attention");
                 });
                 title.innerText = 'Activities Cards (Attention Required)';
+            } else if (currentFilter === 'inprogress') {
+                filtered = projects.filter(p => (p.percentage !== null && p.percentage < 100) || p.percentage === null);
+                title.innerText = 'Activities Cards (In Progress)';
+            } else if (currentFilter === 'completed') {
+                filtered = projects.filter(p => p.percentage === 100 || p.status === 'Finalized');
+                title.innerText = 'Activities Cards (Completed 100%)';
             } else {
                 title.innerText = 'Activities Cards';
+            }
+
+            // Summary UI rendering logic for completed 100% filter
+            if (currentFilter === 'completed') {
+                const completedCount = projects.filter(p => p.percentage === 100 || p.status === 'Finalized').length;
+                const totalCount = projects.length;
+                const percentage = Math.round((completedCount / totalCount) * 100) || 0;
+                
+                summaryContainer.innerHTML = `
+                    <div class="bg-[#002347]/40 border border-[#006EB5]/20 p-4 rounded-xl flex flex-col gap-2 max-w-md">
+                        <div class="flex justify-between text-sm mb-1">
+                            <span class="text-slate-400 font-medium">Completed Activities: <span class="text-white font-bold ml-1">${completedCount} / ${totalCount}</span></span>
+                            <span class="text-[#41B6E6] font-bold">${percentage}%</span>
+                        </div>
+                        <div class="h-2 w-full bg-[#001a33] rounded-full overflow-hidden border border-[#003366]/50">
+                            <div class="h-full bg-gradient-to-r from-[#006EB5] to-[#41B6E6] rounded-full transition-all duration-500" style="width: ${percentage}%"></div>
+                        </div>
+                    </div>
+                `;
+                summaryContainer.classList.remove('hidden');
+            } else {
+                summaryContainer.innerHTML = '';
+                summaryContainer.classList.add('hidden');
             }
 
             if (filtered.length === 0) {
@@ -589,18 +630,25 @@
             currentFilter = type;
             
             // Update UI buttons
-            const btnAll = document.getElementById('btn-all');
-            const btnDelayed = document.getElementById('btn-delayed');
+            const buttons = {
+                'all': document.getElementById('btn-all'),
+                'inprogress': document.getElementById('btn-inprogress'),
+                'completed': document.getElementById('btn-completed'),
+                'delayed': document.getElementById('btn-delayed')
+            };
+            
             const activeClass = "bg-[#006EB5] text-white shadow-lg shadow-[#006EB5]/20";
             const inactiveClass = "bg-[#002347] text-slate-400 border border-[#003366] hover:bg-[#003366]";
 
-            if (type === 'all') {
-                btnAll.className = `px-4 py-1.5 rounded-lg text-sm font-medium transition-colors ${activeClass}`;
-                btnDelayed.className = `px-4 py-1.5 rounded-lg text-sm font-medium transition-colors ${inactiveClass}`;
-            } else {
-                btnAll.className = `px-4 py-1.5 rounded-lg text-sm font-medium transition-colors ${inactiveClass}`;
-                btnDelayed.className = `px-4 py-1.5 rounded-lg text-sm font-medium transition-colors ${activeClass}`;
-            }
+            Object.keys(buttons).forEach(key => {
+                if (buttons[key]) {
+                    if (key === type) {
+                        buttons[key].className = `px-4 py-1.5 rounded-lg text-sm font-medium transition-colors ${activeClass}`;
+                    } else {
+                        buttons[key].className = `px-4 py-1.5 rounded-lg text-sm font-medium transition-colors ${inactiveClass}`;
+                    }
+                }
+            });
 
             renderProjects();
         }
