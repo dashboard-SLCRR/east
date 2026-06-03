@@ -190,10 +190,11 @@
                 activity: "Engineering Consultancy: Al-Rabih Market Reconstruction",
                 percentage: 100, 
                 progressDesc: "under final handover Process", 
-                comments: "Completion date 21st Jan 2026.",
+                comments: "The design phase has been completed 100%. The activity is currently in the procurement process.",
                 icon: "store",
                 value: "124,400",
-                link: "https://drive.google.com/drive/folders/13P1Z8Jg6WFpY-2ua5qHdl0H3DCamcCXO?usp=sharing"
+                link: "https://drive.google.com/drive/folders/13P1Z8Jg6WFpY-2ua5qHdl0H3DCamcCXO?usp=sharing",
+                customCompletionLabel: "Completion (design phase 100%)"
             },
             {
                 id: 4, 
@@ -420,6 +421,8 @@
             }
             
             let progressSection = '';
+            let completionLabelText = project.customCompletionLabel || "Completion";
+            
             if (project.percentage === null) {
                 // If no percentage is known/applicable
                 progressSection = `
@@ -439,7 +442,7 @@
                 progressSection = `
                     <div>
                         <div class="flex justify-between text-xs mb-1.5">
-                            <span class="text-slate-400 font-medium">Completion</span>
+                            <span class="text-slate-400 font-medium">${completionLabelText}</span>
                             <span class="${textColorClass} font-bold">${percentageDisplay}</span>
                         </div>
                         <div class="h-2 w-full bg-[#001a33] rounded-full overflow-hidden border border-[#003366]/50">
