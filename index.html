@@ -185,14 +185,18 @@
             {
                 id: 3, 
                 region: "East", 
-                donor: "EU",
-                donors: ["EU"], 
+                donor: "EU & Italy",
+                donors: ["EU", "Italy"], 
                 activity: "Engineering Consultancy: Al-Rabih Market Reconstruction",
                 percentage: 100, 
                 progressDesc: "under final handover Process", 
-                comments: "The design phase has been completed 100%. The activity is currently in the procurement process.",
+                status: "Procurement",
+                comments: "Tender advertised on 18 October 2026. Closing date: 8 November 2026.",
                 icon: "store",
-                value: "124,400",
+                values: [
+                    { label: "Value", source: "EU & Italy", amount: "124,400" },
+                    { label: "Construction Value", source: "EU & Italy", amount: "2,500,000" }
+                ],
                 link: "https://drive.google.com/drive/folders/13P1Z8Jg6WFpY-2ua5qHdl0H3DCamcCXO?usp=sharing",
                 stages: [
                     {
@@ -203,7 +207,7 @@
                     {
                         label: "Implementation",
                         percentage: 0,
-                        desc: "Implementation has not started yet and is currently in the procurement process."
+                        desc: "Currently in procurement."
                     }
                 ]
             },
@@ -388,12 +392,12 @@
             
             // Status Badge
             let statusBadge = '';
-            if (project.status === 'Finalized' || project.percentage === 100) {
-                 statusBadge = `<span class="flex items-center gap-1 text-emerald-400 text-xs font-bold bg-emerald-500/10 px-2 py-1 rounded-full border border-emerald-500/20"><i data-lucide="check-circle-2" class="w-3 h-3"></i> Finalized</span>`;
-            } else if (project.status === 'Stalled') {
+            if (project.status === 'Stalled') {
                  statusBadge = `<span class="flex items-center gap-1 text-rose-400 text-xs font-bold bg-rose-500/10 px-2 py-1 rounded-full border border-rose-500/20"><i data-lucide="x-circle" class="w-3 h-3"></i> Stalled</span>`;
             } else if (project.status === 'Procurement') {
                  statusBadge = `<span class="flex items-center gap-1 text-amber-400 text-xs font-bold bg-amber-500/10 px-2 py-1 rounded-full border border-amber-500/20"><i data-lucide="shopping-cart" class="w-3 h-3"></i> Procurement</span>`;
+            } else if (project.status === 'Finalized' || project.percentage === 100) {
+                 statusBadge = `<span class="flex items-center gap-1 text-emerald-400 text-xs font-bold bg-emerald-500/10 px-2 py-1 rounded-full border border-emerald-500/20"><i data-lucide="check-circle-2" class="w-3 h-3"></i> Finalized</span>`;
             } else {
                  statusBadge = `<span class="flex items-center gap-1 text-[#41B6E6] text-xs font-bold bg-[#006EB5]/10 px-2 py-1 rounded-full border border-[#006EB5]/20"><i data-lucide="clock" class="w-3 h-3"></i> Active</span>`;
             }
